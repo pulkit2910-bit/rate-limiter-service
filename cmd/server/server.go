@@ -9,11 +9,20 @@ import (
 	"syscall"
 	"time"
 
+	handler "github.com/pulkit2910-bit/rate-limiter-service/internal/handlers"
+	"github.com/pulkit2910-bit/rate-limiter-service/internal/redis"
 	router "github.com/pulkit2910-bit/rate-limiter-service/internal/routes"
+	service "github.com/pulkit2910-bit/rate-limiter-service/internal/services/limiter"
 )
 
 func Start() {
-	r := router.SetupRouter()
+    rdb := redis.RedisClientStart()
+
+    service := service.NewLimiterService(rdb)
+
+    handler := handler.NewHandler(service)
+
+	r := router.SetupRouter(handler)
 
 	server := &http.Server{
         Addr: ":8080",

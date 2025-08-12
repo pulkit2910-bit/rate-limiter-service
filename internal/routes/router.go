@@ -4,9 +4,10 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	handler "github.com/pulkit2910-bit/rate-limiter-service/internal/handlers"
 )
 
-func SetupRouter() *gin.Engine {
+func SetupRouter(handler handler.LimiterHandler) *gin.Engine {
 	router := gin.Default()
 
 	router.GET("/health", func(c *gin.Context) {
@@ -15,6 +16,8 @@ func SetupRouter() *gin.Engine {
 			"message": "Service is running",
 		})
 	})
+
+	router.GET("/check", handler.CheckHandler)
 
 	return router
 }
