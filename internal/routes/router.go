@@ -18,6 +18,7 @@ func SetupRouter(handler handler.LimiterHandler) *gin.Engine {
 	})
 
 	router.GET("/check", handler.CheckHandler)
+	router.POST("/config", handler.ConfigHandler)
 
 	return router
 }

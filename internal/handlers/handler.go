@@ -16,6 +16,7 @@ type Handler struct {
 
 type LimiterHandler interface {
 	CheckHandler(ctx *gin.Context)
+	ConfigHandler(ctx *gin.Context)
 }
 
 func NewHandler(service service.LimiterService) LimiterHandler {
@@ -50,8 +51,40 @@ func (h *Handler) CheckHandler(ctx *gin.Context) {
     result, err := h.service.RunLuaScript(ctx, script, keys, args)
     if err != nil {
         ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		fmt.Printf("Error running Lua script: %v\n", err)
         return
     }
 
+	fmt.Printf("Lua script result: %v\n", result)
+
     ctx.JSON(http.StatusOK, gin.H{"result": result})
+}
+
+func (h *Handler) ConfigHandler(ctx *gin.Context) {
+	var req struct {
+        UserId     string `json:"userId"`
+        Capacity   string `json:"capacity"`
+        RefillRate string `json:"refillRate"`
+    }
+
+    if err := ctx.BindJSON(&req); err != nil {
+		fmt.Printf("Error binding request body: %v\n", err)
+        ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+        return
+    }
+
+    if req.UserId == "" || req.Capacity == "" || req.RefillRate == "" {
+		fmt.Printf("Invalid request: userId, capacity, and refillRate are required\n")
+        ctx.JSON(http.StatusBadRequest, gin.H{"error": "userId, capacity, and refillRate are required"})
+        return
+    }
+
+    if err := h.service.RateLimitingConfig(ctx, req.UserId, req.Capacity, req.RefillRate); err != nil {
+		fmt.Printf("Error setting rate limiting config: %v\n", err)
+        ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to set rate limiting config"})
+        return
+    }
+
+	fmt.Printf("Rate limiting config set for user %s: capacity=%s, refillRate=%s\n", req.UserId, req.Capacity, req.RefillRate)
+	ctx.JSON(http.StatusOK, gin.H{"message": "Rate limiting config set successfully"})
 }

@@ -2,30 +2,33 @@ local userId = KEYS[1]
 local apiPath = KEYS[2]
 local currentTokensArg = ARGV[1]
 local lastUpdatedArg = ARGV[2]
-local capactityArg = ARGV[3]
+local capacityArg = ARGV[3]
 local refillRateArg = ARGV[4]
 local nowTime = ARGV[5]
 
-local key = userId .. ":" .. apiPath
-local currentValue = redis.Call("HGET", key, currentTokensArg, lastUpdatedArg)
-
 -- Config values are stored in a separate key
 local configKey = "config:" .. userId
-local configValue = redis.Call("HGET", configKey, capacityArg, refillRateArg)
-
-local capactity = tonumber(configValue[1])
-local refillRate = tonumber(congigValue[2])
+local configValue = redis.call("HMGET", configKey, capacityArg, refillRateArg)
+if configValue[1] == false or configValue[2] == false then
+    return { 0, "Configuration not found for userId: " .. userId }
+end
 
 local allowed = 0
 local tokens = tonumber(configValue[1])
 local lastUpdatedTime = tonumber(nowTime)
 
+local key = userId .. ":" .. apiPath
+local currentValue = redis.call("HMGET", key, currentTokensArg, lastUpdatedArg)
+
 -- If the current value is nil, it means no tokens have been set yet
-if currentValue == false then
+if currentValue[1] == false or currentValue[2] == false then
     allowed = 1
-    redis.Call("HSET", key, currentTokensArg, tokens, lastUpdatedArg, lastUpdatedTime)
+    redis.call("HSET", key, currentTokensArg, tokens, lastUpdatedArg, lastUpdatedTime)
     return { allowed, tokens, lastUpdatedTime }
 end
+
+local capactity = tonumber(configValue[1])
+local refillRate = tonumber(configValue[2])
 
 tokens = tonumber(currentValue[1])
 lastUpdatedTime = tonumber(currentValue[2])
@@ -44,6 +47,6 @@ end
 
 tokens = newTokens
 lastUpdatedTime = tonumber(nowTime)
-redis.Call("HSET", key, currentTokensArg, tokens, lastUpdatedArg, lastUpdatedTime)
+redis.call("HSET", key, currentTokensArg, tokens, lastUpdatedArg, lastUpdatedTime)
 
 return { allowed, tokens, lastUpdatedTime }

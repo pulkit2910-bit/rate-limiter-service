@@ -11,7 +11,8 @@ type redisClient struct {
 }
 
 type RedisClient interface {
-	Eval(context.Context ,string, []string, ...interface{}) (interface{}, error)
+	Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error)
+	HSet(ctx context.Context, key string, value ...interface{}) error
 }
 
 func RedisClientStart() RedisClient {
@@ -26,4 +27,8 @@ func RedisClientStart() RedisClient {
 
 func (r *redisClient) Eval(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error) {
 	return r.client.Eval(ctx, script, keys, args...).Result()
+}
+
+func (r *redisClient) HSet(ctx context.Context, key string, values ...interface{}) error {
+	return r.client.HSet(ctx, key, values).Err()
 }
