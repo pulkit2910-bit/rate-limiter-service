@@ -11,13 +11,13 @@ type Service struct {
 }
 
 type LimiterService interface {
-    RunLuaScript(ctx context.Context, script string, keys []string, args []interface{}) (interface{}, error)
+    RunLuaScript(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error)
 }
 
 func NewLimiterService(rdb redis.RedisClient) LimiterService {
 	return &Service{rdb: rdb}
 }
 
-func (s *Service) RunLuaScript(ctx context.Context, script string, keys []string, args []interface{}) (interface{}, error) {
+func (s *Service) RunLuaScript(ctx context.Context, script string, keys []string, args ...interface{}) (interface{}, error) {
     return s.rdb.Eval(ctx, script, keys, args...)
 }
