@@ -55,7 +55,7 @@ func (h *Handler) CheckHandler(ctx *gin.Context) {
         return
     }
 
-	fmt.Printf("Lua script result: %v\n", result)
+	fmt.Printf("Lua script result: %v, result struct: %+v, type: %T\n", result, result, result)
 
     ctx.JSON(http.StatusOK, gin.H{"result": result})
 }
@@ -67,7 +67,7 @@ func (h *Handler) ConfigHandler(ctx *gin.Context) {
         RefillRate string `json:"refillRate"`
     }
 
-    if err := ctx.BindJSON(&req); err != nil {
+    if err := ctx.ShouldBindBodyWithJSON(&req); err != nil {
 		fmt.Printf("Error binding request body: %v\n", err)
         ctx.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
         return
