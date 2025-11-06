@@ -37,9 +37,10 @@ func (h *Handler) CheckHandler(ctx *gin.Context) {
         return
     }
 	
-    scriptBytes, err := os.ReadFile("scripts/script.lua")
+    pwd, _ := os.Getwd()
+    scriptBytes, err := os.ReadFile(pwd + "/../scripts/script.lua")
     if err != nil {
-        ctx.JSON(http.StatusInternalServerError, gin.H{"error": "failed to read Lua script"})
+        ctx.JSON(http.StatusInternalServerError, gin.H{"error" : err.Error()})
         return
     }
     
@@ -57,7 +58,14 @@ func (h *Handler) CheckHandler(ctx *gin.Context) {
 
 	fmt.Printf("Lua script result: %v, result struct: %+v, type: %T\n", result, result, result)
 
-    ctx.JSON(http.StatusOK, gin.H{"result": result})
+    resSlice, ok := result.([]interface{})
+    if !ok || len(resSlice) == 0 {
+        ctx.JSON(http.StatusInternalServerError, gin.H{"error": "invalid script result"})
+        fmt.Printf("Invalid script result: %v\n", result)
+        return
+    }
+
+    ctx.JSON(http.StatusOK, gin.H{"result": result, "isAllowed": resSlice[0].(int64) == 1})
 }
 
 func (h *Handler) ConfigHandler(ctx *gin.Context) {
