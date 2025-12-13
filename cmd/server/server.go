@@ -25,12 +25,12 @@ func Start() {
 	r := router.SetupRouter(handler)
 
 	server := &http.Server{
-        Addr: ":8080",
+        Addr: ":8085",
 		Handler: r,
 	}
 
 	go func() {
-        log.Println("Starting server on :8080")
+        log.Println("Starting server on :8085")
         if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
             log.Fatalf("listen: %s\n", err)
         }
