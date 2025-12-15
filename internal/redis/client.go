@@ -18,7 +18,7 @@ type RedisClient interface {
 
 func RedisClientStart() RedisClient {
 	rdb := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
+		Addr: "redis:6379",
 	})
 
 	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
